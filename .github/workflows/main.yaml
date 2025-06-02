@@ -1,4 +1,4 @@
-name: build CAAA deb
+name: build libCstd deb
 
 on:
   push:
