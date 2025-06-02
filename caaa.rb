@@ -1,7 +1,7 @@
 # Documentation: https://docs.brew.sh/Formula-Cookbook
 #                https://rubydoc.brew.sh/Formula
 # PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
-class Caaa < Formula
+class libCstd < Formula
   desc "c with aaa batteres"
   homepage ""
   url "https://github.com/oonray/CAAA/archive/refs/tags/v1.1.23.tar.gz"
