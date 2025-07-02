@@ -1,6 +1,6 @@
 build
-buildwin
+.DS_Store
 .ccls-cache
 .cache
-.cache
 .vscode
+.clangd

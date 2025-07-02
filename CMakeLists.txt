@@ -23,142 +23,150 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
 #HFILES
 set(DEST "include")
 
-FILE(GLOB bstr_h inc/bstring/*.h)
+FILE(GLOB bstr_h lib/bstring/*.h)
 install(FILES ${bstr_h} DESTINATION ${DEST}/bstring)
 
-FILE(GLOB munit_h inc/munit/*.h)
+FILE(GLOB munit_h lib/munit/*.h)
 install(FILES ${munit_h} DESTINATION ${DEST}/munit)
 
-FILE(GLOB dbg_h dbg/*.h)
-install(FILES ${dbg_h} DESTINATION ${DEST})
+FILE(GLOB util_h src/util/*/*.h)
+install(FILES ${util_h} DESTINATION ${DEST})
 
-FILE(GLOB all_h */src/*.h)
+FILE(GLOB all_h src/*/*.h)
 install(FILES ${all_h} DESTINATION ${DEST})
 
-FILE(GLOB inc_src */src)
+include_directories(lib)
 
+FILE(GLOB inc_src src/*)
 include_directories(${inc_src})
-include_directories("dbg/")
-include_directories("inc/")
-include_directories("strings/")
 
+FILE(GLOB inc_util_src src/util/*)
+include_directories(${inc_util_src})
+
+include_directories("src/")
 
 #munit
-FILE(GLOB munit inc/munit/*.c)
-add_library(ca_munit_obj OBJECT inc/munit/munit.c)
-add_library(ca_munit $<TARGET_OBJECTS:ca_munit_obj>)
-install(TARGETS ca_munit)
+FILE(GLOB munit lib/munit/*.c)
+add_library(munit_obj OBJECT lib/munit/munit.c)
+add_library(munit $<TARGET_OBJECTS:munit_obj>)
 
 #bstrlib
 #@author websnarf
 #@git https://github.com/websnarf/bstrlib
-FILE(GLOB bstr_src inc/bstring/*.c)
-add_library(bstring_obj OBJECT ${bstr_src})
-add_library(ca_string $<TARGET_OBJECTS:bstring_obj>)
-install(TARGETS ca_string)
-
+FILE(GLOB bstr_src lib/bstring/*.c)
+add_library(bstrlib_obj OBJECT ${bstr_src})
+add_library(bstrlib $<TARGET_OBJECTS:bstrlib_obj>)
 
 # Vector
-add_library(vector_obj OBJECT vector/src/ca_vector.c)
+add_library(vector_obj OBJECT src/vector/ca_vector.c)
 add_library(ca_vector $<TARGET_OBJECTS:vector_obj>)
 install(TARGETS ca_vector)
 
-add_executable(vector_tests vector/tests/vector_tests.c)
-target_link_libraries(vector_tests PRIVATE ca_vector ca_munit)
+add_executable(vector_tests tests/vector_tests.c)
+target_link_libraries(vector_tests PRIVATE ca_vector munit)
 add_test(NAME vector_test
          COMMAND vector_tests)
 
 # Map
-add_library(map_obj OBJECT map/src/ca_map.c)
+add_library(map_obj OBJECT src/map/ca_map.c)
 add_library(ca_map $<TARGET_OBJECTS:map_obj>)
 target_link_libraries(ca_map PRIVATE ca_vector)
 add_dependencies(ca_map ca_vector)
 install(TARGETS ca_map)
 
-add_executable(map_tests map/tests/map_tests.c)
-target_link_libraries(map_tests PRIVATE ca_map ca_vector ca_string ca_munit)
+add_executable(map_tests tests/map_tests.c)
+target_link_libraries(map_tests PRIVATE ca_map ca_vector bstrlib munit)
 add_test(NAME map_test
          COMMAND map_tests)
 
 # Stack
-add_library(stack_obj OBJECT stack/src/ca_stack.c)
+add_library(stack_obj OBJECT src/stack/ca_stack.c)
 add_library(ca_stack $<TARGET_OBJECTS:stack_obj>)
 target_link_libraries(ca_stack PRIVATE ca_vector)
 install(TARGETS ca_stack)
 add_dependencies(ca_stack ca_vector)
 
-add_executable(stack_tests stack/tests/stack_tests.c)
-target_link_libraries(stack_tests PRIVATE ca_stack ca_vector ca_munit)
+add_executable(stack_tests tests/stack_tests.c)
+target_link_libraries(stack_tests PRIVATE ca_stack ca_vector munit)
 add_test(NAME stack_test
          COMMAND stack_tests)
 
 #queue
-add_library(queue_obj OBJECT queue/src/ca_queue.c)
+add_library(queue_obj OBJECT src/queue/ca_queue.c)
 add_library(ca_queue $<TARGET_OBJECTS:queue_obj>)
 target_link_libraries(ca_queue PRIVATE ca_vector)
 install(TARGETS ca_queue)
 add_dependencies(ca_queue ca_vector)
 
-add_executable(queue_tests queue/tests/queue_tests.c)
-target_link_libraries(queue_tests PRIVATE ca_queue ca_munit)
+add_executable(queue_tests tests/queue_tests.c)
+target_link_libraries(queue_tests PRIVATE ca_queue munit)
 add_test(NAME queue_test
          COMMAND queue_tests)
 
+#buffer
+add_library(buffer_obj OBJECT src/buffer/ca_buffer.c)
+add_library(ca_buffer $<TARGET_OBJECTS:buffer_obj>)
+install(TARGETS ca_buffer)
+
+add_executable(buffer_tests tests/buffer_tests.c)
+target_link_libraries(buffer_tests PRIVATE ca_buffer munit bstrlib)
+add_test(NAME buffer_test
+         COMMAND buffer_tests)
+
 #ringbuffer
-add_library(ringbuffer_obj OBJECT ringbuffer/src/ca_ringbuffer.c)
+add_library(ringbuffer_obj OBJECT src/ringbuffer/ca_ringbuffer.c)
 add_library(ca_ringbuffer $<TARGET_OBJECTS:ringbuffer_obj>)
-target_link_libraries(ca_ringbuffer PRIVATE ca_vector ca_string)
+target_link_libraries(ca_ringbuffer PRIVATE ca_vector bstrlib)
 install(TARGETS ca_ringbuffer)
-add_dependencies(ca_ringbuffer ca_vector ca_string)
+add_dependencies(ca_ringbuffer ca_vector bstrlib)
 
-
-add_executable(ringbuffer_tests ringbuffer/tests/reingbuffer_tests.c)
-target_link_libraries(ringbuffer_tests PRIVATE ca_ringbuffer ca_munit)
+add_executable(ringbuffer_tests tests/ringbuffer_tests.c)
+target_link_libraries(ringbuffer_tests PRIVATE ca_ringbuffer munit)
 add_test(NAME ringbuffer_test
          COMMAND ringbuffer_tests)
 
 #titree
-add_library(tritree_obj OBJECT tritree/src/ca_tritree.c)
+add_library(tritree_obj OBJECT src/tritree/ca_tritree.c)
 add_library(ca_tritree $<TARGET_OBJECTS:tritree_obj> )
-target_link_libraries(ca_tritree PRIVATE ca_vector ca_string)
+target_link_libraries(ca_tritree PRIVATE ca_vector bstrlib)
 install(TARGETS ca_tritree)
 add_dependencies(ca_tritree ca_vector)
 
-add_executable(tritree_tests tritree/tests/tritree_tests.c)
-target_link_libraries(tritree_tests ca_tritree ca_munit)
+add_executable(tritree_tests tests/tritree_tests.c)
+target_link_libraries(tritree_tests ca_tritree munit)
 add_test(NAME tritree_test
          COMMAND tritree_tests)
 
 #bintree
-add_library(bintree_obj OBJECT bintree/src/ca_bintree.c)
+add_library(bintree_obj OBJECT src/bintree/ca_bintree.c)
 add_library(ca_bintree $<TARGET_OBJECTS:bintree_obj>)
-target_link_libraries(ca_bintree PRIVATE ca_vector ca_string)
+target_link_libraries(ca_bintree PRIVATE bstrlib)
 install(TARGETS ca_bintree)
-add_dependencies(ca_bintree ca_vector)
 
-add_executable(bintree_tests bintree/tests/bintree_tests.c)
-target_link_libraries(bintree_tests PRIVATE ca_bintree ca_munit)
+add_executable(bintree_tests tests/bintree_tests.c)
+target_link_libraries(bintree_tests PRIVATE ca_bintree munit)
 add_test(NAME bintree_test
          COMMAND bintree_tests)
 
+#TODO
 #fileio
-add_library(fileio_obj OBJECT io/src/ca_fileio.c)
-add_library(ca_fileio $<TARGET_OBJECTS:fileio_obj>)
-target_link_libraries(ca_fileio PRIVATE ca_string ca_ringbuffer ca_vector)
+#add_library(fileio_obj OBJECT src/io/ca_fileio.c)
+#add_library(ca_fileio $<TARGET_OBJECTS:fileio_obj>)
+#target_link_libraries(ca_fileio PRIVATE bstrlib ca_ringbuffer ca_vector)
 
-install(TARGETS ca_fileio)
-add_dependencies(ca_fileio ca_ringbuffer)
+#install(TARGETS ca_fileio)
+#add_dependencies(ca_fileio ca_ringbuffer)
 
-add_executable(io_tests io/tests/fileio_test.c)
-target_link_libraries(io_tests PRIVATE ca_fileio ca_string ca_munit)
-add_test(NAME io_tests
-         COMMAND io_tests)
+#add_executable(io_tests tests/fileio_test.c)
+#target_link_libraries(io_tests PRIVATE ca_fileio bstrlib munit)
+#add_test(NAME io_tests
+#         COMMAND io_tests)
 
 #io SSL
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-   set(OSX TRUE)
-   set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@1.1")
-endif()
+#if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+#   set(OSX TRUE)
+#   set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@1.1")
+#endif()
 
 #openssl
 find_package(OpenSSL)
@@ -166,16 +174,15 @@ if(${OPENSSL_FOUND})
 message("openssl: ${OPENSSL_FOUND}")
 message("openssl-include: ${OPENSSL_INCLUDE_DIR}")
 
-add_library(fileio_ssl_obj OBJECT io/src/ca_fileio.c io/src/ca_fileio_ssl.c)
-target_include_directories(fileio_ssl_obj PRIVATE ${OPENSSL_INCLUDE_DIR})
-target_compile_definitions(fileio_ssl_obj PRIVATE _CA_WITH_OPEN_SSL)
+#add_library(fileio_ssl_obj OBJECT io/src/ca_fileio.c io/ca_fileio_ssl.c)
+#target_include_directories(fileio_ssl_obj PRIVATE ${OPENSSL_INCLUDE_DIR})
+#target_compile_definitions(fileio_ssl_obj PRIVATE _CA_WITH_OPEN_SSL)
 
-add_library(ca_fileio_ssl $<TARGET_OBJECTS:fileio_ssl_obj>)
-target_link_libraries(ca_fileio_ssl PRIVATE ca_ringbuffer ca_string OpenSSL::SSL)
+#add_library(ca_fileio_ssl $<TARGET_OBJECTS:fileio_ssl_obj>)
+#target_link_libraries(ca_fileio_ssl PRIVATE ca_ringbuffer bstrlib OpenSSL::SSL)
 
-
-install(TARGETS ca_fileio_ssl)
-add_dependencies(ca_fileio_ssl ca_ringbuffer)
+#install(TARGETS ca_fileio_ssl)
+#add_dependencies(ca_fileio_ssl ca_ringbuffer)
 endif()
 
 ##argparse
@@ -183,20 +190,17 @@ endif()
 # man 3 optargs
 
 #sockets
-#add_library(soc_obj OBJECT sockets/src/soc.c)
+#add_library(soc_obj OBJECT src/sockets/soc.c)
 #add_library(soc $<TARGET_OBJECTS:soc_obj>)
 #target_link_libraries(soc PRIVATE fileio_ssl)
 #install(TARGETS soc)
 #add_dependencies(soc fileio)
 #add_dependencies(soc ringbuffer)
 
-#add_executable(soc_tests sockets/tests/socket_tests.c sockets/tests/munit.c)
-#target_link_libraries(soc_tests PRIVATE soc fileio_ssl ca_string)
+#add_executable(soc_tests tests/socket_tests.c tests/munit.c)
+#target_link_libraries(soc_tests PRIVATE soc fileio_ssl bstrlib)
 #add_test(NAME soc_tests
 #         COMMAND soc_tests)
 
 #  #request
 # use libcurl
-
-#  #web
-#  use mongoose.h
