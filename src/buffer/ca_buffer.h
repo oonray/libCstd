@@ -1,8 +1,10 @@
 #ifndef __ca_buffer_h_
 #define __ca_buffer_h_
+//@file ca_buffer.h
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <error/ca_error.h>
 
 #define ca_buffer_def_len 128
 #define ca_buffer_def_type sizeof(unsigned char)

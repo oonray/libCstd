@@ -1,15 +1,11 @@
 site_name: libCstd Docs
 
+nav:
+  - Home: index.md
+  - Buffer: Buffer.md
+
 theme:
   name: readthedocs
 
 plugins:
   - search
-  - mkdoxy:
-      projects:
-        libCstd: # name of project must be alphanumeric + numbers (without spaces)
-          src-dirs: ../src # path to source code (support multiple paths separated by space) => INPUT
-          full-doc: True # if you want to generate full documentation
-          doxy-cfg: # standard doxygen configuration (key: value)
-            FILE_PATTERNS: "*.c *.h*" # specify file patterns to filter out
-            RECURSIVE: True # recursive search in source directories

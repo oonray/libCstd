@@ -1,17 +1,7 @@
-# Welcome to MkDocs
+# libCstd
 
 For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
-## Commands
+A C library that contains basic functionality for the c language.
+In other languages these are part of the standard library giving the library its name libCstd.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
-
-## Project layout
-
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.

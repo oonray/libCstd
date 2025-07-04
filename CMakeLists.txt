@@ -50,12 +50,27 @@ FILE(GLOB munit lib/munit/*.c)
 add_library(munit_obj OBJECT lib/munit/munit.c)
 add_library(munit $<TARGET_OBJECTS:munit_obj>)
 
+if (DEFINED NO_CA_ERRORS)
+else()
+add_compile_definitions(CA_ERRORS)
+endif()
+
 #bstrlib
 #@author websnarf
 #@git https://github.com/websnarf/bstrlib
 FILE(GLOB bstr_src lib/bstring/*.c)
 add_library(bstrlib_obj OBJECT ${bstr_src})
 add_library(bstrlib $<TARGET_OBJECTS:bstrlib_obj>)
+
+#error
+add_library(error_obj OBJECT src/error/ca_error.c)
+add_library(ca_error $<TARGET_OBJECTS:error_obj>)
+install(TARGETS ca_error)
+
+add_executable(error_tests tests/error_tests.c)
+target_link_libraries(error_tests PRIVATE ca_error munit bstrlib)
+add_test(NAME error_test
+         COMMAND error_tests)
 
 # Vector
 add_library(vector_obj OBJECT src/vector/ca_vector.c)
@@ -109,7 +124,7 @@ add_library(ca_buffer $<TARGET_OBJECTS:buffer_obj>)
 install(TARGETS ca_buffer)
 
 add_executable(buffer_tests tests/buffer_tests.c)
-target_link_libraries(buffer_tests PRIVATE ca_buffer munit bstrlib)
+target_link_libraries(buffer_tests PRIVATE  ca_buffer ca_error munit bstrlib )
 add_test(NAME buffer_test
          COMMAND buffer_tests)
 
