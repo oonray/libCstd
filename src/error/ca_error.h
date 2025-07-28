@@ -3,8 +3,9 @@
 
 #include <bstring/bstrlib.h>
 #include <errno.h>
+#include <error/ca_colors.h>
 
-#ifdef __CA_CUSTOM_ERRORS
+#ifdef CUSTOM_CA_ERRORS
 #undef errno
 #define errno (*__ca_errno_location())
 extern int ca_errno;
@@ -27,14 +28,26 @@ extern ca_error ca_err;
 #define ca_err_throw_cl(err,LABEL) {errno=err;ca_err_set(err); goto LABEL;}
 
 #define ca_err_print()\
-  printf("(%s:%d) [error %d] %s\n",\
-         ca_err.function,ca_err.line,\
-         errno,strerror(errno));
+  printf("(%s:%s%d%s) [error %s%d%s] %s\n",\
+         ca_err.function,\
+         CA_ANSI_COLOR_RED,\
+         ca_err.line,\
+         CA_ANSI_COLOR_REMOVE,\
+         CA_ANSI_COLOR_RED,\
+         errno,\
+         CA_ANSI_COLOR_REMOVE,\
+         strerror(errno))
 
 #define ca_err_print_test()\
-  printf("\r(%s:%d) [error %d] %s\n",\
-         ca_err.function,ca_err.line,\
-         errno,strerror(errno));
+  printf("\r(%s:%s%d%s) [error %s%d%s] %s\n",\
+         ca_err.function,\
+         CA_ANSI_COLOR_RED,\
+         ca_err.line,\
+         CA_ANSI_COLOR_REMOVE,\
+         CA_ANSI_COLOR_RED,\
+         errno,\
+         CA_ANSI_COLOR_REMOVE,\
+         strerror(errno))
 
 #else
 #define ca_err_reset() errno=0;
@@ -45,11 +58,15 @@ extern ca_error ca_err;
 #define ca_err_throw_cl(err,LABEL) {errno=err;goto LABEL;}
 
 #define ca_err_print()\
-  printf("[error %d] %s\n",\
-         errno,strerror(errno));
+  printf("[error %s%d%s] %s\n",\
+         CA_ANSI_COLOR_RED,\
+            errno,strerror(errno),\
+         CA_ANSI_COLOR_REMOVE)
 
 #define ca_err_print_test()\
-  printf("\r[error %d] %s\n",\
-         errno,strerror(errno));
+  printf("\r[error %s%d%s] %s\n",\
+         CA_ANSI_COLOR_RED,\
+            errno,strerror(errno),\
+         CA_ANSI_COLOR_REMOVE)
 #endif
 #endif

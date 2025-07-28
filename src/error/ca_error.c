@@ -2,7 +2,7 @@
 
 ca_error ca_err = {0};
 
-#ifdef __ca_custom_errors
+#ifdef CUSTOM_CA_ERRORS
 int ca_errno = 0;
 int *__ca_errno_location(){
     int *errnop = __errno_location();

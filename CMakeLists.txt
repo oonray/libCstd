@@ -51,8 +51,10 @@ add_library(munit_obj OBJECT lib/munit/munit.c)
 add_library(munit $<TARGET_OBJECTS:munit_obj>)
 
 if (DEFINED NO_CA_ERRORS)
+message("Using C errors")
 else()
-add_compile_definitions(CA_ERRORS)
+message("Using CA_ERRORS")
+add_compile_definitions(CA_ERRORS=1)
 endif()
 
 #bstrlib
