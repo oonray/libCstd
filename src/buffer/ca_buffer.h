@@ -31,8 +31,10 @@ int ca_buffer_write_end(ca_buffer *buff, void *value, size_t value_len);
 
 int ca_buffer_read(ca_buffer *buff, void *out, size_t read_size);
 
-int ca_buffer_read_alloc(ca_buffer *buff, void *out, size_t read_size);
-int ca_buffer_read_alloc_all(ca_buffer *buff, void *out);
+int ca_buffer_read_alloc(ca_buffer *buff,
+                         void **out, size_t read_size);
+int ca_buffer_read_alloc_all(ca_buffer *buff,
+                             void **out,size_t *amount_read);
 
 #define ca_buffer_reset(A) (A)->dlen=0;
 #define ca_buffer_full(A) (ca_buffer_space(A)<=0)

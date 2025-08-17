@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <munit/munit.h>
 #include <bstring/bstrlib.h>
 #include <error/ca_error.h>
@@ -5,26 +6,24 @@
 
 static void *buffer_tests_setup(const MunitParameter params[], void *user_data) {
   ca_buffer *buff = NULL;
-  if(!ca_buffer_new_default(&buff)) goto error;
-  if(buff==NULL) goto error;
-  if(buff->mlen != CA_BUFFER_DEF_SIZE) ca_err_throw();
-  if(buff->opt != CA_BUFFER_NOEXPAND) ca_err_throw();
+  ca_err_chk_res(!ca_buffer_new_default(&buff));
+  ca_err_chk_null_c(buff,ENOBUFS);
 
-  return buff;
-error:
-  return NULL;
+  ca_err_chk_c(buff->mlen != CA_BUFFER_DEF_SIZE,ENOBUFS);
+  ca_err_chk_c(buff->opt != CA_BUFFER_NOEXPAND,ENOBUFS);
+
+  ca_err_return_pointer(buff);
 }
 
 static void *buffer_tests_setup_expand(const MunitParameter params[], void *user_data) {
   ca_buffer *buff = NULL;
-  if(!ca_buffer_new_default_expand(&buff)) goto error;
-  if(buff==NULL) goto error;
-  if(buff->mlen != CA_BUFFER_DEF_SIZE) ca_err_throw();
-  if(buff->opt != CA_BUFFER_EXPAND) ca_err_throw();
+  ca_err_chk_res(!ca_buffer_new_default_expand(&buff));
+  ca_err_chk_null_c(buff,ENOBUFS);
 
-  return buff;
-error:
-  return NULL;
+  ca_err_chk_c(buff->mlen != CA_BUFFER_DEF_SIZE,ENOBUFS);
+  ca_err_chk_c(buff->opt != CA_BUFFER_EXPAND,ENOBUFS);
+
+  ca_err_return_pointer(buff);
 }
 
 static void buffer_test_teardown(void *fixture) {
@@ -43,7 +42,7 @@ MunitResult buffer_test_new(const MunitParameter params[],
   if(buff->opt != CA_BUFFER_NOEXPAND) ca_err_throw();
 
   ca_buffer_destroy(&buff);
-  if(buff!=NULL) goto error;
+  ca_err_chk_not_null_c(buff,EPROTO);
 
   if(!ca_buffer_new_default(&buff)) goto error;
   if(buff==NULL) goto error;
@@ -51,44 +50,43 @@ MunitResult buffer_test_new(const MunitParameter params[],
   if(buff->opt != CA_BUFFER_NOEXPAND) ca_err_throw();
 
   if(!ca_buffer_destroy(&buff)) goto error;
-  if(buff!=NULL) goto error;
+  ca_err_chk_not_null_c(buff,EPROTO);
 
   if(!ca_buffer_new_default_expand(&buff)) goto error;
   if(buff->mlen!=CA_BUFFER_DEF_SIZE)  ca_err_throw();
   if(buff->opt != CA_BUFFER_EXPAND)   ca_err_throw();
 
   ca_buffer_destroy(&buff);
-  if(buff!=NULL) goto error;
+  ca_err_chk_not_null_c(buff,EPROTO);
 
-  return MUNIT_OK;
-error:
-  ca_err_print_test();
-  return MUNIT_FAIL;
+  ca_err_return_test();
 }
 
 MunitResult buffer_test_write(const MunitParameter params[],
                        void *user_data_or_fixture) {
   ca_buffer *buff = (ca_buffer *)user_data_or_fixture;
-  if(buff==NULL) return MUNIT_FAIL;
+  ca_err_chk_par_null(buff);
 
   bstring input = bfromcstr("Hello World");
 
   bstring input2 = calloc(1,sizeof(struct tagbstring));
-  if(input2==NULL) goto error;
+  ca_err_chk_null(input2);
   input2->mlen=input->mlen;
   input2->slen=input2->mlen/sizeof(char);
   input2->data=calloc(1,input2->mlen);
-  if(input2->data==NULL) goto error;
+  ca_err_chk_null(input2->data);
   memset(input2->data,'A',input->mlen);
 
-  if(!ca_buffer_write(buff,input->data,input->mlen)) ca_err_throw();
-  if(memcmp(buff->data,input->data,input->mlen) != 0)
-        ca_err_throw_c(EINVAL);
+  ca_err_chk_res(!ca_buffer_write(buff,input->data,input->mlen));
+  ca_err_chk_c(
+        memcmp(buff->data,input->data,input->mlen) != 0,
+        EPROTO);
 
-  if(!ca_buffer_write(buff,input2->data,input2->mlen)) ca_err_throw();
-  if(!ca_buffer_write_end(buff,input->data,input->mlen)) ca_err_throw();
-  if(memcmp(buff->data+input2->mlen,input->data,input->mlen) != 0)
-        ca_err_throw_c(EINVAL);
+  ca_err_chk_res(!ca_buffer_write(buff,input2->data,input2->mlen));
+  ca_err_chk_res(!ca_buffer_write_end(buff,input->data,input->mlen));
+  ca_err_chk_c(
+        memcmp(buff->data+input2->mlen,input->data,input->mlen) != 0,
+        EPROTO);
 
   bdestroy(input);
   bdestroy(input2);
@@ -103,27 +101,33 @@ error:
 MunitResult buffer_test_write_expand(const MunitParameter params[],
                        void *user_data_or_fixture) {
   ca_buffer *buff = (ca_buffer *)user_data_or_fixture;
-  if(buff==NULL) return MUNIT_FAIL;
+  ca_err_chk_par_null(buff);
 
   bstring input = bfromcstr("Hello World");
+
   bstring input2 = calloc(1,sizeof(struct tagbstring));
-  if(input2==NULL) goto error;
+  ca_err_chk_null(input2);
   input2->mlen=buff->mlen;
   input2->slen=input2->mlen/sizeof(char);
   input2->data=calloc(1,input2->mlen);
-  if(input2->data==NULL) goto error;
-  memset(input2->data,'A',input->mlen);
+  ca_err_chk_null(input2->data);
+  memset(input2->data,'A',input2->mlen);
 
   int orig_len = buff->mlen;
+  int new_len = input2->mlen+input->mlen;
 
-  if(!ca_buffer_write(buff,input2->data,input2->mlen)) ca_err_throw();
-  if(!ca_buffer_full(buff)) ca_err_throw_c(EINVAL);
+  ca_err_chk_c(orig_len>=new_len,EPROTO);
 
-  if(!ca_buffer_write_end(buff,input->data,input->mlen)) ca_err_throw();
-  if(memcmp(buff->data+input2->mlen,input->data,input->mlen) != 0)
-        ca_err_throw_c(EINVAL);
+  ca_err_chk_res(!ca_buffer_write(buff,input2->data,input2->mlen));
+  ca_err_chk_c(!ca_buffer_full(buff),ENOBUFS);
 
-  if(buff->mlen != orig_len) ca_err_throw_c(EINVAL);
+  ca_err_chk_res(!ca_buffer_write_end(buff,input->data,input->mlen));
+  ca_err_chk_c(
+        memcmp(buff->data+input2->mlen,input->data,input->mlen) != 0,
+        EPROTO);
+
+  ca_err_chk_c(buff->mlen <= orig_len,EPROTO);
+  ca_err_chk_c(buff->mlen != new_len,EPROTO);
 
   bdestroy(input);
   bdestroy(input2);
@@ -138,27 +142,52 @@ error:
 MunitResult buffer_test_read(const MunitParameter params[],
                       void *user_data_or_fixture) {
   ca_buffer *buff = (ca_buffer *)user_data_or_fixture;
-  if(buff==NULL) goto error;
+  ca_err_chk_par_null(buff);
 
   bstring input = bfromcstr("Hello World");
-  bstring input2 = calloc(1,sizeof(struct tagbstring));
-  if(input2==NULL) goto error;
-  input2->mlen=buff->mlen+input->mlen;
-  input2->slen=input2->mlen/sizeof(char);
-  input2->data=calloc(1,input2->mlen);
-  if(input2->data==NULL) goto error;
-  memset(input2->data,'A',input->mlen);
 
-  bstring out = &(struct tagbstring){0};
+  bstring out = calloc(1,sizeof(struct tagbstring));
+  ca_err_chk_null(out);
   out->mlen=input->mlen;
   out->slen=input->slen;
+  out->data=calloc(1,out->mlen);
+  ca_err_chk_null(out->data);
+
+  size_t outsize = 0;
+  unsigned char *outalloc = NULL;
+
+  ca_err_chk_res(!ca_buffer_write(buff,input->data,input->mlen));
+
+  ca_err_chk_res(!ca_buffer_read(buff,out->data,input->mlen));
+  ca_err_chk_c(
+        memcmp(out->data,buff->data,out->mlen) != 0,
+        EPROTO);
+
+  ca_err_chk_res(!ca_buffer_read_alloc(buff,(void **)&outalloc,input->mlen));
+  ca_err_chk_null_c(outalloc,EPROTO);
+  ca_err_chk_c(
+        memcmp(outalloc,buff->data,out->mlen) != 0,
+        EPROTO);
+
+  free(outalloc);
+  outalloc=NULL;
+
+  ca_err_chk_res(!ca_buffer_read_alloc_all(buff,(void **)&outalloc,&outsize));
+  ca_err_chk_null_c(outalloc,EPROTO);
+  ca_err_chk_c(outsize!=buff->dlen,EPROTO);
+  ca_err_chk_c(
+        memcmp(outalloc,buff->data,out->mlen) != 0,
+        EPROTO);
+
+  free(outalloc);
+  outalloc=NULL;
 
   bdestroy(input);
-  bdestroy(input2);
+  bdestroy(out);
   return MUNIT_OK;
 error:
   if(input!=NULL) bdestroy(input);
-  if(input2!=NULL) bdestroy(input2);
+  if(out!=NULL) bdestroy(out);
   ca_err_print_test();
   return MUNIT_FAIL;
 }

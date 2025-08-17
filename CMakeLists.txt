@@ -123,7 +123,14 @@ add_test(NAME queue_test
 #buffer
 add_library(buffer_obj OBJECT src/buffer/ca_buffer.c)
 add_library(ca_buffer $<TARGET_OBJECTS:buffer_obj>)
+target_link_libraries(ca_buffer PRIVATE ca_error)
 install(TARGETS ca_buffer)
+
+
+add_library(buffer_obj+ OBJECT src/buffer/ca_buffer.cc)
+add_library(ca_buffer+ $<TARGET_OBJECTS:buffer_obj+>)
+target_link_libraries(ca_buffer PRIVATE ca_error)
+install(TARGETS ca_buffer+)
 
 add_executable(buffer_tests tests/buffer_tests.c)
 target_link_libraries(buffer_tests PRIVATE  ca_buffer ca_error munit bstrlib )
@@ -133,12 +140,12 @@ add_test(NAME buffer_test
 #ringbuffer
 add_library(ringbuffer_obj OBJECT src/ringbuffer/ca_ringbuffer.c)
 add_library(ca_ringbuffer $<TARGET_OBJECTS:ringbuffer_obj>)
-target_link_libraries(ca_ringbuffer PRIVATE ca_vector bstrlib)
+target_link_libraries(ca_ringbuffer PRIVATE ca_buffer ca_error)
 install(TARGETS ca_ringbuffer)
 add_dependencies(ca_ringbuffer ca_vector bstrlib)
 
 add_executable(ringbuffer_tests tests/ringbuffer_tests.c)
-target_link_libraries(ringbuffer_tests PRIVATE ca_ringbuffer munit)
+target_link_libraries(ringbuffer_tests PRIVATE ca_buffer ca_error ca_ringbuffer munit bstrlib)
 add_test(NAME ringbuffer_test
          COMMAND ringbuffer_tests)
 
