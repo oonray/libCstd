@@ -27,9 +27,11 @@ int ca_buffer_destroy(ca_buffer **out);
 int ca_buffer_resize(ca_buffer *buff, size_t mem);
 
 int ca_buffer_write(ca_buffer *buff, void *value, size_t value_len);
+int ca_buffer_write_loc(ca_buffer *buff, size_t start, void *value, size_t value_len);
 int ca_buffer_write_end(ca_buffer *buff, void *value, size_t value_len);
 
 int ca_buffer_read(ca_buffer *buff, void *out, size_t read_size);
+int ca_buffer_read_loc(ca_buffer *buff, size_t start, void *out, size_t read_size);
 
 int ca_buffer_read_alloc(ca_buffer *buff,
                          void **out, size_t read_size);

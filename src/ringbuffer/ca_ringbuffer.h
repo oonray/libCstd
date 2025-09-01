@@ -6,6 +6,7 @@
 #include <bstring/bstrlib.h>
 
 #define CA_RINGBUFFER_DEFAULT_SIZE 128*sizeof(char)
+typedef ca_buffer_option ca_ringubffer_option;
 
 typedef struct ca_ringubffer {
   ca_buffer *buffer;

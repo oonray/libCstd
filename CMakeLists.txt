@@ -127,10 +127,10 @@ target_link_libraries(ca_buffer PRIVATE ca_error)
 install(TARGETS ca_buffer)
 
 
-add_library(buffer_obj+ OBJECT src/buffer/ca_buffer.cc)
-add_library(ca_buffer+ $<TARGET_OBJECTS:buffer_obj+>)
-target_link_libraries(ca_buffer PRIVATE ca_error)
-install(TARGETS ca_buffer+)
+add_library(caa_buffer_obj OBJECT src/buffer/ca_buffer.cc)
+add_library(caa_buffer $<TARGET_OBJECTS:caa_buffer_obj>)
+target_link_libraries(caa_buffer PRIVATE ca_error)
+install(TARGETS caa_buffer)
 
 add_executable(buffer_tests tests/buffer_tests.c)
 target_link_libraries(buffer_tests PRIVATE  ca_buffer ca_error munit bstrlib )
