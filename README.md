@@ -2,11 +2,22 @@
 
 [![build CAAA deb](https://github.com/oonray/CAAA/actions/workflows/main.yaml/badge.svg)](https://github.com/oonray/CAAA/actions/workflows/main.yaml) 
 
-A Tripple A Library for C.
-C has been said to not be a Batteries included Library, So i made some Tripple A batteries.
+Another standard Library for C.
+C has been said to not be a Batteries included.
+It is almost a rite of pasage in the C world to write your own stdlib extensions.
+So here is mine.
 
 ### Atribution
-* Code is the result of me reading Learn C the hard way by Zed Shaw.
+* The project was started wile i read Learn C the hard way, by Zed Shaw.
 * depends [bstrlib](https://github.com/websnarf/bstrlib)
-* depends [tomlc99](https://github.com/cktan/tomlc99)
-https://wiki.openssl.org/index.php/Base64
+
+### Awsome commands
+```bash
+openssl req -nodes -new -x509 -keyout key.pem -out cert.pem
+```
+
+### Awsome C libraries
+https://wiki.openssl.org/
+https://github.com/nanopb/nanopb
+https://mongoose.ws/
+https://github.com/Mbed-TLS/mbedtls

@@ -23,32 +23,26 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
 #HFILES
 set(DEST "include")
 
-FILE(GLOB bstr_h lib/bstring/*.h)
-install(FILES ${bstr_h} DESTINATION ${DEST}/bstring)
+FILE(GLOB lib lib/*)
+FILE(GLOB src src/*)
+FILE(GLOB src_util src/util/*)
 
-FILE(GLOB munit_h lib/munit/*.h)
-install(FILES ${munit_h} DESTINATION ${DEST}/munit)
+FILE(GLOB src_h ${src}/*.h)
+FILE(GLOB lib_h ${lib}/*.h)
+FILE(GLOB util_h ${inc_src_util}/*.h)
 
-FILE(GLOB util_h src/util/*/*.h)
-install(FILES ${util_h} DESTINATION ${DEST})
+install(FILES ${src_h} DESTINATION ${DEST})
+install(FILES ${lib_h} DESTINATION ${DEST})
+install(FILES ${util_h} DESTINATION ${DEST}/munit)
 
-FILE(GLOB all_h src/*/*.h)
-install(FILES ${all_h} DESTINATION ${DEST})
-
-include_directories(lib)
-
-FILE(GLOB inc_src src/*)
-include_directories(${inc_src})
-
-FILE(GLOB inc_util_src src/util/*)
-include_directories(${inc_util_src})
-
-include_directories("src/")
+include_directories(${lib})
+include_directories(${src})
+include_directories(${util})
 
 #munit
-FILE(GLOB munit lib/munit/*.c)
-add_library(munit_obj OBJECT lib/munit/munit.c)
-add_library(munit $<TARGET_OBJECTS:munit_obj>)
+FILE(GLOB munit_s lib/munit/*.c)
+add_library(munit_o OBJECT ${munit_s})
+add_library(munit $<TARGET_OBJECTS:munit_o>)
 
 if (DEFINED NO_CA_ERRORS)
 message("Using C errors")
@@ -60,9 +54,9 @@ endif()
 #bstrlib
 #@author websnarf
 #@git https://github.com/websnarf/bstrlib
-FILE(GLOB bstr_src lib/bstring/*.c)
-add_library(bstrlib_obj OBJECT ${bstr_src})
-add_library(bstrlib $<TARGET_OBJECTS:bstrlib_obj>)
+FILE(GLOB bstr_s lib/bstring/*.c)
+add_library(bstrlib_o OBJECT ${bstr_s})
+add_library(bstrlib $<TARGET_OBJECTS:bstrlib_o>)
 
 #error
 add_library(error_obj OBJECT src/error/ca_error.c)

@@ -8,73 +8,35 @@
 #define CA_IO_NL "\n"
 #define CA_IO_CRLF "\n\r"
 
+#define _CA_IO_TYPE \
+ _CA_IO_TYPE_X(CA_SOCKFD,0x01,recv,send) \
+ _CA_IO_TYPE_X(CA_FILEFD,0x03,read,write) \
+ _CA_IO_TYPE_X(CA_STRINGFD,0x05,read,write) \
+ _CA_IO_TYPE_X(CA_PIPEFD,0x09,read,write) \
+ _CA_IO_TYPE_X(CA_SSLFD,0x11,recv,send) \
+ _CA_IO_TYPE_X(CA_SERIAL,0x13,read,send) \
+ _CA_IO_TYPE_X(CA_BUFFER,0xA1,read,send) \
+
 const static struct tagbstring CA_IO_NL_BS = bsStatic(CA_IO_NL);
 const static struct tagbstring CA_IO_CRLF_BS = bsStatic(CA_IO_CRLF);
 
-typedef enum _ca_io_socket_type {
-  CA_SOCKFD = 0x01,
-  CA_FILEFD = 0x03,
-  CA_STRINGFD = 0x05,
-  CA_PIPEFD = 0x09,
-  CA_SSLFD = 0x11,
-  CA_SERIAL = 0x13,
-}ca_io_socket_type;
+#define _CA_IO_TYPE_X(a,b,c,d) a=b,
 
-//READ
-typedef enum _ca_io_reader_type {
-    CA_IO_READER_BUFFER=0x10,
-    CA_IO_READER_BUFFER_RING=0x11,
-    CA_IO_READER_SOCKET=0x01,
-    CA_IO_READER_SOCKET_SSL=0x12,
-    CA_IO_READER_SOCKET_SERIAL=0x13,
-    CA_IO_READER_FILE=0x03,
-    CA_IO_READER_PIPE=0x09,
-}ca_io_reader_type;
+typedef enum _ca_io_type {
+    _CA_IO_TYPE
+}ca_io_type;
 
-typedef union _ca_io_readable {
-    ca_buffer *buffer;
-    ca_ringbuffer *ring_buffer;
-} ca_io_readable;
+#undef _CA_IO_TYPE_X
+#define _CA_IO_TYPE_X(a,b,c,d) b:c,
 
-typedef union _ca_io_reader_func {
-    ca_error(*ca_buffer_read)(ca_buffer *,void *, size_t);
-    ca_error(*ca_ringbuffer_read)(ca_ringbuffer *,void *, size_t);
-}ca_io_reader_func;
-
-typedef struct _ca_io_reader {
-    ca_io_readable readable;
-    ca_io_reader_func reader;
-}ca_io_reader;
-
-//WRITE
-typedef enum _ca_io_writer_type {
-    CA_IO_WRITER_BUFFER,
-    CA_IO_WRITER_BUFFER_RING,
-    CA_IO_WRITER_SOCKET,
-    CA_IO_WRITER_SOCKET_SSL,
-    CA_IO_WRITER_FILE,
-    CA_IO_WRITER_PIPE,
-}ca_io_writer_type;
-
-typedef union _ca_io_writable {
-    ca_buffer *buffer;
-    ca_ringbuffer *ring_buffer;
-} ca_io_writable;
-
-typedef union _ca_io_writer_func {
-    ca_error(*ca_buffer_read)(ca_buffer *,void *, size_t);
-    ca_error(*ca_ringbuffer_read)(ca_buffer *,void *, size_t);
-}ca_io_writer_func;
-
-typedef struct _ca_io_writer {
-    ca_io_writable readable;
-    ca_io_reader_func write;
-}ca_io_writer;
-
-//RW
-typedef struct _ca_io_read_writer {
-    ca_io_reader *reader;
-    ca_io_writer *writer;
-}ca_io_read_writer;
+#define ca_read(TYPE,TARGET,BUFFER,SIZE) _Generic((TYPE), \
+    CA_IO_TYPE \
+)
+#undef _CA_IO_TYPE_X
+#define _CA_IO_TYPE_X(a,b,c,d) b:d,
+#define ca_write(TYPE,TARGET,BUFFER,SIZE) _Generic((TYPE), \
+    CA_IO_TYPE \
+)
+#undef _CA_IO_TYPE_X
 
 #endif

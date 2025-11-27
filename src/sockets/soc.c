@@ -1,62 +1,38 @@
-#include <soc.h>
+#include <sockets/soc.h>
 
-Asoc *Asoc_New(int proto, int type, int port, bstring ip, int stype) {
-  Asoc *srv = calloc(1, sizeof(Asoc));
-  check(srv != NULL, "Could not create Server");
+int ca_lisener_set(ca_soc *soc,ca_soc_type type, ca_soc_proto proto, bstring host,int port){
+    if(soc==NULL){
+        errno=EINVAL;
+        return 0;
+    }
 
-  stype = stype == 0 ? SOCKFD : stype;
-
-  srv->io = NewIoStreamSocketSOC(proto, type, 1024 * 10, NULL);
-
-  check(srv->io != NULL, "Could not create io");
-
-  srv->host = ip;
-  srv->port = bformat("%d", port);
-
-  srv->addr.sin_family = proto;
-  srv->addr.sin_port = htons(atoi(bdata(srv->port)));
-  srv->addr.sin_addr.s_addr = inet_addr(bdata(srv->host));
-
-  return srv;
+    return 1;
 error:
-  if (srv != NULL) {
-    free(srv);
-  }
-  return NULL;
+    return 0;
 }
 
-void Asoc_Destroy(Asoc *srv) {
-  DestroyIoStream(srv->io);
-  free(srv);
-}
+int ca_soc_new(ca_soc **out){
+    if(out==NULL){ //no input
+        errno=EINVAL;
+        return 0;
+    }
+    if((*out)!=NULL){ //already allocated
+        errno=EINVAL;
+        return 0;
+    }
+    (*out) = calloc(1,sizeof(ca_soc));
+    if(*out==NULL){ //allocation error
+        return 0;
+    }
 
-int AsocBind(Asoc *srv) {
-  return bind(srv->io->fd, (struct sockaddr *)&srv->addr, sizeof(srv->addr));
-}
-
-int AsocListen(Asoc *srv, int backlog) {
-  return listen(srv->io->fd, (backlog == 0 ? 10 : backlog));
-}
-
-int AsocConnect(Asoc *srv) {
-  int c_soc =
-      connect(srv->io->fd, (struct sockaddr *)&srv->addr, sizeof(srv->addr));
-  return c_soc;
-}
-
-Asoc *AsocAccept(Asoc *srv, int type) {
-  Asoc *client = calloc(1, sizeof(Asoc));
-  check(client != NULL, "Could not create client soc");
-
-  socklen_t peer_len = sizeof(client->addr);
-  int c_soc = accept(srv->io->fd, (struct sockaddr *)&client->addr,
-                     (socklen_t *)&peer_len);
-
-  check(c_soc != 0, "Could not accept connection");
-  client->io = NewIoStream(c_soc, type == 0 ? SOCKFD : type, 1024 * 10);
-  client->host = bfromcstr(inet_ntoa(client->addr.sin_addr));
-  client->port = bformat("%d", client->addr.sin_port);
-  return client;
+    return 1;
 error:
-  return NULL;
+    return 0;
+}
+
+void ca_soc_destroy(ca_soc *soc){
+    if(soc->listener.host!=NULL){
+        bdestroy(soc->listener.host);
+    }
+    free(soc);
 }
