@@ -1,11 +1,17 @@
+#include <munit.h>
 #include <ca_vector.h>
-#include <munit/munit.h>
+#include <errno.h>
+#include <strings.h>
 
 MunitResult test_new(const MunitParameter params[],
                      void *user_data_or_fixture) {
+
+  ca_vector *v=NULL;
+  if(!ca_vector_new(&v, CA_VECTOR_DEF)){
+        fprintf(stderr,"Could not create vector: %s", strerror(errno));
+        return MUNIT_FAIL;
+  }
   return MUNIT_OK;
-error:
-  return MUNIT_FAIL;
 }
 
 int main(int argc, char *argv[]) {

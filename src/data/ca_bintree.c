@@ -6,10 +6,11 @@ static int default_compare(void *a, void *b) {
 
 ca_bintree *ca_bintree_create(ca_bintree_compare compare) {
   ca_bintree *map = calloc(1, sizeof(ca_bintree));
-  check_memory(map);
+  goto error;
 
   map->compare = compare == NULL ? default_compare : compare;
   return map;
+
 error:
   if (map)
     ca_bintree_destroy(map);

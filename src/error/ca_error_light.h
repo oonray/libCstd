@@ -2,13 +2,13 @@
 #include <errno.h>
 
 
-#define ca_chk_null(VAR, ERRNO){\
+#define ca_chk_null(VAR, ERR){\
     if(VAR==NULL){\
-        errno=ERRNO;\
+        errno=ERR;\
         return 0;\
     }\
 }
-#define ca_chk_not_null(VAR, ERRNO){\
+#define ca_chk_not_null(VAR, ERR){\
     if(VAR!=NULL){\
         errno=ERRNO;\
         return 0;\

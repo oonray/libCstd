@@ -1,8 +1,7 @@
 #ifndef __ca_bintree_h
 #define __ca_bintree_h
 
-#include <bstring/bstrlib.h>
-#include <ca_dbg.h>
+#include <bstrlib.h>
 #include <stdlib.h>
 
 typedef int (*ca_bintree_compare)(void *a, void *b);
