@@ -66,7 +66,7 @@ lib%.a: %.o
 	ar rcs $(LIB_BD)/$@ $(OBJ_BD)/$<
 
 %_tests: tests/%_tests.c munit
-	$(CC) $(FLAGS) -o $(TEST_BD)/$@ $< -L $(LIB_BD) -l munit
+	$(CC) $(FLAGS) -o $(TEST_BD)/$@ $< -L $(LIB_BD) -l munit -lbstrlib
 
 #LIBS
 .PHONY: bstrlib
@@ -82,7 +82,7 @@ mongoose: LIB_FILES:=$(LIB_FILES) libmongoose.a
 mongoose: libmongoose.a
 
 .PHONY: tests
-tests: munit tree_tests
+tests: munit bstrlib tree_tests
 
 .PHONY: tree
 tree: H_FILES+=src/ca_tree.h

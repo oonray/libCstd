@@ -74,6 +74,12 @@ typedef enum {
     CA_TREE_TYPE_MAX=CA_TREE_EMPTY // max value validation
 } ca_tree_type;
 
+typedef enum {
+    CA_DATA_DEF_TYPE= CA_DATA_IS_BLOCK,
+    CA_DATA_DEF_ITEMS= 32,
+    CA_DATA_DEF_ILEN= sizeof(byte),
+    CA_DATA_DEF_MLEN= CA_DATA_DEF_ITEMS*CA_DATA_DEF_ILEN,
+}ca_data_defaults;
 
 // CA DATA: represents a piece of data.
 // By some called Vecor or Buffer.
@@ -91,7 +97,7 @@ typedef struct {
 }ca_data_type_bflag;
 
 typedef struct {
-    void *bytes;
+    byte *bytes;
     struct {
         len items; //number of items
         size memory; //total memory size
@@ -100,15 +106,16 @@ typedef struct {
     unsigned is_empty:1;
 } ca_data;
 
+typedef struct {
+    ca_data *val;
+    size start;
+    size end;
+}ca_data_view;
+
 int ca_data_compare(ca_data *a, ca_data *b);
 int ca_data_write(ca_data *a,void *data, size mlen);
 int ca_data_read(ca_data *a,void *data, size mlen);
 
-typedef enum {
-    CA_DATA_DEF_TYPE= CA_DATA_IS_BLOCK,
-    CA_DATA_DEF_ILEN= sizeof(byte),
-    CA_DATA_DEF_MLEN= 32*CA_DATA_DEF_ILEN,
-}ca_data_defaults;
 
 typedef struct ca_data ca_buff; //if you want to call it a buffer
 
@@ -294,8 +301,8 @@ int ca_node_compare(ca_node *a, ca_node *b){
     errno = CA_OK;
     int rc = CA_EQUAL;
     if((rc = ca_data_compare(
-        a->val->bytes,
-        b->val->bytes)
+        a->val,
+        b->val)
        ) == CA_ERROR_NG
        && errno != CA_OK) goto error;
     // Could be CA_ERROR_NG if comparing 1-2 (-1)
@@ -347,15 +354,14 @@ int ca_data_new(ca_data **data, len item_num, type ilen, size mlen, ca_data_type
 
         case CA_DATA_IS_EMPTY_ITEMS:
             (*data)->type.is_items=CA_ENABLED;
-            if(ilen<=CA_DATA_NONE) goto invalid;
 
         case CA_DATA_IS_EMPTY_BLOCK:
             (*data)->type.is_block=CA_ENABLED;
-            if(ilen!=CA_DATA_NONE) goto invalid;
 
         case CA_DATA_NONE:
         case CA_DATA_IS_EMPTY:
         default:
+            if(ilen!=CA_DATA_NONE) goto invalid;
             if(mlen!=CA_DATA_NONE
                 || item_num!=CA_DATA_NONE) goto invalid;
 
@@ -365,6 +371,7 @@ int ca_data_new(ca_data **data, len item_num, type ilen, size mlen, ca_data_type
         break;
     }
 
+    if((*data)->is_empty) return CA_OK;
     if((*data)->len.memory<0) goto nobuff;
 
     (*data)->bytes=calloc(1,(*data)->len.memory);

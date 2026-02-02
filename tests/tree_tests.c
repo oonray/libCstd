@@ -6,24 +6,38 @@
 
 #define CA_TREE_IMPL
 #include <ca_tree.h>
-
-#define fail(MSG) {fprintf(stderr,"\n" MSG "\n");goto fail;}
-#define fail_err(MSG) {fprintf(stderr,"\n" MSG "%s \n", strerror(errno));goto fail;}
+#include <bstring/bstrlib.h>
 
 MunitResult test_data_new(const MunitParameter params[],
                      void *user_data_or_fixture) {
   ca_data *v=NULL;
-  if(!ca_data_new(&v, CA_DATA_DEF_ILEN , CA_DATA_DEF_TYPE)) fail_err("Could not create data");
+  bstring err;
+  if(!ca_data_new(&v, CA_DATA_NONE, CA_DATA_NONE,CA_DATA_DEF_MLEN, CA_DATA_DEF_TYPE)){
+        err=bfromcstr("Could not create data");
+        goto error;}
 
-  if(v==NULL) fail("ca_data is null");
-  if(v->bytes==NULL) fail("bytes is null")
-  if(v->len!=CA_TREE_DEF_LEN) fail("len is wrong");
-  if(v->mlen!=CA_TREE_DEF_LEN*CA_TREE_DEF_TYPE) fail("mlen is wrong");
+  if(v==NULL){ 
+        err=bfromcstr("ca_data is null");
+        goto error;}
 
-  if(!ca_data_del(v)) fail_err("Could not delete data");
+  if(v->bytes==NULL){
+        err=bfromcstr("bytes is null");
+        goto error;}
+
+  if(v->len.items!=CA_DATA_DEF_ITEMS){
+        err=bformat("len is wrong: %lu!=%lu",v->len.items,CA_DATA_DEF_ITEMS);
+        goto error;}
+
+  if(v->len.memory!=CA_DATA_DEF_MLEN){
+        err=bformat("mlen is wrong: %lu!=%lu",v->len.memory,CA_DATA_DEF_MLEN);
+        goto error;}
+
+  if(!ca_data_del(v)) err=bfromcstr("Could not delete data");
 
   return MUNIT_OK;
-fail:
+error:
+  if(err!=NULL) munit_log(MUNIT_LOG_ERROR,bdata(err));
+  bdestroy(err);
   return MUNIT_FAIL;
 }
 
