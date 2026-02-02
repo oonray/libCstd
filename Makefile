@@ -1,7 +1,7 @@
 #
-# LibCStd
+# LibCA
 #
-name=libCstd
+name=libCA
 
 #SOURCES
 SRC_D=./src
@@ -9,60 +9,81 @@ DATA_D=$(SRC_D)/data
 STATIC_D=$(BUILD_D)/lib
 
 #BUILD
-BUILD_D=./build
-OBJ_BD=$(BUILD_D)/obj
-TEST_BD=$(BUILD_D)/tests
+BUILD_D:=./build
+OBJ_BD:=$(BUILD_D)/obj
+TEST_BD:=$(BUILD_D)/tests
+LIB_BD:=$(BUILD_D)/lib
+DIRS:=$(OBJ_BD) $(TEST_BD) $(LIB_BD) $(LIB_BD)
 
-LIB_BD=$(BUILD_D)/lib
-DATA_OBJ_D=$(OBJ_BD)/data
+#COMPILE
+CC:=clang
+CMD_C:=./compile_commands.json
+BEAR_C:=bear --append --output $(CMD_C) --
 
-CMD_C=./compile_commands.json
-CC=bear --append --output $(CMD_C) -- clang
+VPATH:=$(VPATH):src:$(wildcard src/*):$(wildcard build/*):lib:$(wildcard lib/*):tests
+FLAGS:=$(FLAGS) $(patsubst %,-I%,$(subst :, ,$(VPATH))) -Wall --std=c23
 
-VPATH = $(wildcard src/*):$(wildcard build/*):$(wildcard lib/*):tests
-FLAGS = $(CFLAGS) $(patsubst %,-I%,$(subst :, ,$(VPATH))) -Wall --std=c23
+#INSTALL
+IND=/usr/
+H_IND=$(IND)/include/
+LIB_IND=$(IND)/lib32/
 
 .PHONY: all
-all: dirs libs data
+all: debug
+
+.PHONY: debug
+debug: FLAGS:=$(FLAGS) -D DEBUG -O0 -g
+debug: CC:=$(BEAR_C) $(CC)
+debug: dirs tests
+
+.PHONY: release
+release: BUILD_D:=./build/release
+release: OBJ_BD:=$(BUILD_D)/obj
+release: LIB_BD:=$(BUILD_D)/lib
+release: DIRS:=$(OBJ_BD) $(LIB_BD) $(LIB_BD)
+release: FLAGS:=$(FLAGS) -O3 -D RELEASE
+release: dirs
+
+install: clean release $(H_FILES) $(LIB_FILES)
+	cp -t $(H_FILES) $(H_IND)
+	cp -r $(LIB_BD) $(LIB_IND)
+
+uninstall:
+	rm $(patsubst %,$(H_IND)/$(notdir $(H_FILES)))
+	rm $(patsubst %,$(LIB_IND)/% $(notdir $(LIB_BD)))
 
 clean:
 	rm -rf $(BUILD_D)
 
 dirs:
-	mkdir -p $(BUILD_D)
-	mkdir -p $(LIB_BD)
-	mkdir -p $(DATA_OBJ_D)
-	mkdir -p $(TEST_BD)
-
-dev:
-	bear -- append --output $(CMD_C) -- make
+	mkdir -p $(DIRS)
 
 #RULES
 %.o: %.c %.h
-	$(CC) $(FLAGS) -fPIC -c -o $(OBJ_BD)/$@ $<
+	$(CC) $(FLAGS) -c -o $(OBJ_BD)/$@ $<
 
 lib%.a: %.o
 	ar rcs $(LIB_BD)/$@ $(OBJ_BD)/$<
 
-%_tests: libca_%.a libmunit.a
-	$(CC) $(FLAGS) -o $(TEST_BD)/$@ tests/$@.c -L $(LIB_BD) -l munit -l ca_$(subst _tests,,$@)
+%_tests: tests/%_tests.c munit
+	$(CC) $(FLAGS) -o $(TEST_BD)/$@ $< -L $(LIB_BD) -l munit
 
 #LIBS
 .PHONY: bstrlib
+bstrlib: LIB_FILES:=$(LIB_FILES) libbstrlib.a
 bstrlib: libbstrlib.a
 
 .PHONY: munit
+munit: LIB_FILES:=$(LIB_FILES) libmunit.a
 munit: libmunit.a
 
 .PHONY: mongoose
+mongoose: LIB_FILES:=$(LIB_FILES) libmongoose.a
 mongoose: libmongoose.a
 
-.PHONY: libs
-libs: bstrlib mongoose munit
+.PHONY: tests
+tests: munit tree_tests
 
-.PHONY: vector
-vector: libca_vector.a libmunit.a vector_tests
-
-.PHONY: data
-data: vector $(LIB_BD)/libca_data.a
-$(LIB_BD)/libca_data.a: $(patsubst %c,%o,$(notdir $(wildcard src/data/*.c)))
+.PHONY: tree
+tree: H_FILES+=src/ca_tree.h
+tree: src/ca_tree.h #single header
